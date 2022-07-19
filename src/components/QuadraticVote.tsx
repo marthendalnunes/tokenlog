@@ -15,8 +15,10 @@ export function QuadraticVote(props: Props) {
     getQuadraticCost(props.current + step)
   )
 
-  function onSubmit() {
-    props.onSubmit(voteAmount)
+  async function onSubmit() {
+    if(await props.onSubmit(voteAmount)){
+      setQuadraticCost(getQuadraticCost(props.current + 2 * voteAmount))
+    }
   }
 
   function onChange(type: 'MIN' | 'DOWN' | 'UP' | 'MAX') {

@@ -41,6 +41,7 @@ export function ItemVote(props: Props) {
     catch (ex) {
       console.log('Signing message failed or denied.', ex)
       setSubmittingVote(false)
+      return false
     }
 
     if (signature) {
@@ -54,7 +55,9 @@ export function ItemVote(props: Props) {
       console.log('Creating vote..', vote)
       const result = await voteContext.vote(vote)
       setSubmittingVote(false)
+      return true
     }
+    return false
   }
 
   async function signMessage(message: Message) {
