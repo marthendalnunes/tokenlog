@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { APP_CONFIG } from 'src/utils/config'
+import { VOTE_VERSION } from 'src/utils/constants'
 import VoteModel from 'src/repository/models/v1/VoteModel'
 import { Vote as V2Vote } from 'src/types'
 import { Vote as V1Vote } from 'src/types/v1/Vote'
@@ -29,7 +30,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       address: i.address,
       amount: i.cost,
       state: i.closed ? 'CLOSED' : 'OPEN',
-      version: 2,
+      version: VOTE_VERSION,
       timestamp: (i.timestamp ? new Date(i.timestamp) : new Date(0)).getTime(),
       signature: i.signature,
     } as V2Vote

@@ -6,6 +6,7 @@ import { useVote } from 'src/hooks/useVote'
 import { useWeb3 } from 'src/hooks/useWeb3'
 import { Message, Vote } from 'src/types'
 import { QuadraticVote } from './QuadraticVote'
+import { VOTE_VERSION } from '../utils/constants'
 
 interface Props {
   number: number
@@ -29,7 +30,7 @@ export function ItemVote(props: Props) {
       backlog: backlog.id,
       number: props.number,
       amount: value,
-      version: 1,
+      version: VOTE_VERSION,
       timestamp: new Date().getTime(),
     }
 
