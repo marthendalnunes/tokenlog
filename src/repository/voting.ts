@@ -52,6 +52,20 @@ export class MongoVotingRepository
     }
   }
 
+  public async SubmitVote(vote: Vote): Promise<Vote> {
+    try {
+      await this.Connect()
+
+      const voteDocument = new VoteModel(vote)
+
+      await voteDocument.save()
+      return voteDocument
+    } catch (ex) {
+      console.error(ex)
+      throw new Error(`Unable to submit vote`)
+    }
+  }
+
   public async CloseVotes(id: string, numbers: Array<number>): Promise<void> {
     try {
       await this.Connect()

@@ -71,7 +71,11 @@ export function VoteContextProvider(props: Props) {
       ...backlog,
     }
 
-    // TODO: POST vote to API 
+    await fetch('/api/votes', {
+      method: 'POST',
+      body: JSON.stringify(vote),
+    })
+
     const itemIndex = updatedBacklog.items.findIndex(i => i.number === vote.number)
     updatedBacklog.items[itemIndex].votes = [...updatedBacklog.items[itemIndex].votes, vote]
     updatedBacklog.items[itemIndex].totalVoteValue = updatedBacklog.items[itemIndex].votes.reduce((value, vote) => value + vote.amount, 0),
