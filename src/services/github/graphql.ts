@@ -31,7 +31,7 @@ export function GET_REPOSITORY() {
             owner {
                 ${OWNER}
             }
-            settings: object(expression: "master:tokenlog.json") {
+            settings: object(expression: "HEAD:tokenlog.json") {
                 ... on Blob {
                     data: text
                 }
