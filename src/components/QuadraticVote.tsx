@@ -8,6 +8,10 @@ interface Props {
   onSubmit: (value: number) => Promise<boolean>
 }
 
+export function getQuadraticCost(value: number): number {
+  return Number(Math.pow(value, 2).toFixed(2))
+}
+
 export function QuadraticVote(props: Props) {
   const step = 1
   const [voteAmount, setVoteAmount] = useState(step)
@@ -51,10 +55,6 @@ export function QuadraticVote(props: Props) {
 
     setVoteAmount(amount)
     setQuadraticCost(qc)
-  }
-
-  function getQuadraticCost(value: number): number {
-    return Number(Math.pow(value, 2).toFixed(2))
   }
 
   function disableLower() {

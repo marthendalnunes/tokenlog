@@ -1,5 +1,6 @@
 import React, { createContext, ReactNode, useEffect, useState } from 'react'
 import snapshot from '@snapshot-labs/snapshot.js'
+import { getQuadraticCost } from '../components/QuadraticVote'
 import { useWeb3 } from 'src/hooks/useWeb3'
 import { useBacklog } from 'src/hooks/useBacklog'
 import { Vote } from 'src/types'
@@ -42,14 +43,23 @@ export function VoteContextProvider(props: Props) {
   useEffect(() => {
     async function updateContext() {
       let votingPower = 0
-      let usedVotingPower = 0
+      let usedVotingPower: any = 0
       let userVotes = []
+      let proposalVotes = {}
       const backlogVotes = backlog.items.flatMap(i => i.votes)
       
       if (web3Context.address && backlog.settings?.strategy) {
         votingPower = await getVotingPower()
         userVotes = backlogVotes.filter((i) => i.address === web3Context.address)
-        usedVotingPower = userVotes.map((i) => i.amount).reduce((a, b) => a + b, 0)
+        userVotes.map((i) => {
+          proposalVotes.hasOwnProperty(i.number)
+            ? (proposalVotes[i.number] += i.amount)
+            : (proposalVotes[i.number] = i.amount)
+        })
+        usedVotingPower = Object.values(proposalVotes).reduce(
+          (vote1: number, vote2: number) => vote1 + getQuadraticCost(vote2),
+          0
+        )
       }
 
       setContext({
