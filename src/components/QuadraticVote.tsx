@@ -5,7 +5,7 @@ interface Props {
   current: number
   max: number
   loading?: boolean
-  onSubmit: (value: number) => boolean
+  onSubmit: (value: number) => Promise<boolean>
 }
 
 export function QuadraticVote(props: Props) {
