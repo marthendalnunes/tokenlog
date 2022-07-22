@@ -6,6 +6,7 @@ import { useVote } from 'src/hooks/useVote'
 import { useWeb3 } from 'src/hooks/useWeb3'
 import { Message, Vote } from 'src/types'
 import { QuadraticVote } from './QuadraticVote'
+import { StandardVote } from './StandardVote'
 import { VOTE_VERSION } from '../utils/constants'
 
 interface Props {
@@ -18,11 +19,8 @@ export function ItemVote(props: Props) {
   const voteContext = useVote()
 
   const [submittingVote, setSubmittingVote] = useState(false)
-  const userVotes = voteContext.userVotes
-  const itemVotes = userVotes.filter((i) => i.number === props.number)
-  const itemCost = itemVotes.map((i) => i.amount).reduce((a, b) => a + b, 0)
+  const proposalVotesByUser = voteContext.proposalVotesByUser
   const votingPower = voteContext.votingPower
-  const usedVotingPower = voteContext.usedVotingPower
 
   async function submitVote(value: number) {
     setSubmittingVote(true)
@@ -92,12 +90,23 @@ export function ItemVote(props: Props) {
           </p>
         )}
 
-        <QuadraticVote
-          current={itemCost}
-          max={votingPower - usedVotingPower}
-          onSubmit={submitVote}
-          loading={submittingVote}
-        />
+        {backlog.settings.method === 'QUADRATIC' ? (
+          <QuadraticVote
+            number={props.number}
+            votingPower={votingPower}
+            proposalVotes={proposalVotesByUser}
+            onSubmit={submitVote}
+            loading={submittingVote}
+          />
+        ) : (
+          <StandardVote
+            number={props.number}
+            votingPower={votingPower}
+            proposalVotes={proposalVotesByUser}
+            onSubmit={submitVote}
+            loading={submittingVote}
+          />
+        )}
       </div>
     </div>
   )

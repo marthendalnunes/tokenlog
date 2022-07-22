@@ -1,6 +1,5 @@
 import React, { createContext, ReactNode, useEffect, useState } from 'react'
 import snapshot from '@snapshot-labs/snapshot.js'
-import { getQuadraticCost } from '../components/QuadraticVote'
 import { useWeb3 } from 'src/hooks/useWeb3'
 import { useBacklog } from 'src/hooks/useBacklog'
 import { Vote } from 'src/types'
@@ -12,16 +11,14 @@ interface Props {
 
 interface VoteContextType {
   votingPower: number
-  usedVotingPower: number
-  userVotes: Array<Vote>,
-  backlogVotes: Array<Vote>,
+  proposalVotesByUser: { [key: number]: number }
+  backlogVotes: Array<Vote>
   vote: (vote: Vote) => Promise<boolean>
 }
 
 export const VoteContext = createContext<VoteContextType>({
   votingPower: 0,
-  usedVotingPower: 0,
-  userVotes: [],
+  proposalVotesByUser: {},
   backlogVotes: [],
   vote: async () => false,
 })
@@ -30,11 +27,9 @@ export function VoteContextProvider(props: Props) {
   const web3Context = useWeb3()
   const backlog = useBacklog()
   const backlogContext = useBacklogContext()
-  const initialVotes = backlog.items.flatMap(i => i.votes)
   const initialState = {
     votingPower: 0,
-    usedVotingPower: 0,
-    userVotes: initialVotes.filter((i) => i.address === web3Context.address),
+    proposalVotesByUser: {},
     backlogVotes: backlog.items.flatMap(i => i.votes),
     vote,
   }
@@ -43,31 +38,25 @@ export function VoteContextProvider(props: Props) {
   useEffect(() => {
     async function updateContext() {
       let votingPower = 0
-      let usedVotingPower: any = 0
       let userVotes = []
-      let proposalVotes = {}
+      let proposalVotesByUser = {}
       const backlogVotes = backlog.items.flatMap(i => i.votes)
-      
+
       if (web3Context.address && backlog.settings?.strategy) {
         votingPower = await getVotingPower()
         userVotes = backlogVotes.filter((i) => i.address === web3Context.address)
         userVotes.map((i) => {
-          proposalVotes.hasOwnProperty(i.number)
-            ? (proposalVotes[i.number] += i.amount)
-            : (proposalVotes[i.number] = i.amount)
+          proposalVotesByUser.hasOwnProperty(i.number)
+            ? (proposalVotesByUser[i.number] += i.amount)
+            : (proposalVotesByUser[i.number] = i.amount)
         })
-        usedVotingPower = Object.values(proposalVotes).reduce(
-          (vote1: number, vote2: number) => vote1 + getQuadraticCost(vote2),
-          0
-        )
       }
 
       setContext({
         ...context,
         votingPower,
-        usedVotingPower,
-        userVotes,
-        backlogVotes
+        proposalVotesByUser,
+        backlogVotes,
       })
     }
 
@@ -103,7 +92,6 @@ export function VoteContextProvider(props: Props) {
       web3Context.provider,
       [web3Context.address]
     )
-
     return scores[0][web3Context.address]
   }
 
