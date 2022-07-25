@@ -11,6 +11,8 @@ interface Props {
 
 interface VoteContextType {
   votingPower: number
+  usedVotingPower: number
+  userVotes: Array<{ number: Vote }>
   proposalVotesByUser: { [key: number]: number }
   backlogVotes: Array<Vote>
   vote: (vote: Vote) => Promise<boolean>
@@ -18,6 +20,8 @@ interface VoteContextType {
 
 export const VoteContext = createContext<VoteContextType>({
   votingPower: 0,
+  usedVotingPower: 0,
+  userVotes: [],
   proposalVotesByUser: {},
   backlogVotes: [],
   vote: async () => false,
@@ -29,6 +33,8 @@ export function VoteContextProvider(props: Props) {
   const backlogContext = useBacklogContext()
   const initialState = {
     votingPower: 0,
+    usedVotingPower: 0,
+    userVotes: [],
     proposalVotesByUser: {},
     backlogVotes: backlog.items.flatMap(i => i.votes),
     vote,
@@ -38,6 +44,7 @@ export function VoteContextProvider(props: Props) {
   useEffect(() => {
     async function updateContext() {
       let votingPower = 0
+      let usedVotingPower = 0
       let userVotes = []
       let proposalVotesByUser = {}
       const backlogVotes = backlog.items.flatMap(i => i.votes)
@@ -45,6 +52,9 @@ export function VoteContextProvider(props: Props) {
       if (web3Context.address && backlog.settings?.strategy) {
         votingPower = await getVotingPower()
         userVotes = backlogVotes.filter((i) => i.address === web3Context.address)
+        usedVotingPower = userVotes
+          .map((i) => i.amount)
+          .reduce((a, b) => a + b, 0)
         userVotes.map((i) => {
           proposalVotesByUser.hasOwnProperty(i.number)
             ? (proposalVotesByUser[i.number] += i.amount)
@@ -55,6 +65,8 @@ export function VoteContextProvider(props: Props) {
       setContext({
         ...context,
         votingPower,
+        usedVotingPower,
+        userVotes,
         proposalVotesByUser,
         backlogVotes,
       })
