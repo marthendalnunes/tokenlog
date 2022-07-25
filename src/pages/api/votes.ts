@@ -9,22 +9,13 @@ export default async (
   req: NextApiRequest,
   res: NextApiResponse<Data<Array<Vote>>>
 ) => {
-  if (req.method !== 'GET')
+  if (req.method !== 'POST')
     return res.status(405).json({ status: 405, message: 'Method Not Allowed' })
-
-  const backlogId =
-    req.query['backlog'] && typeof req.query['backlog'] === 'string'
-      ? req.query['backlog'].toString()
-      : ''
-  if (!backlogId)
-    return res.status(400).json({ status: 400, message: 'Bad Request' })
-
-  const result = await repo.GetBacklogVotes(backlogId)
-  if (result) {
-    return res.status(200).json({ status: 200, data: result, message: '' })
-  }
-
+  
+  const vote = JSON.parse(req.body)
+  await repo.SubmitVote(vote)
+  
   return res
-    .status(400)
-    .json({ status: 400, message: `Unable to get backlog votes. ${backlogId}` })
+    .status(200)
+    .json({ status: 200, message: 'Vote successfully submitted!' })
 }

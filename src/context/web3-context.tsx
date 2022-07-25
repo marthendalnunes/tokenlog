@@ -15,7 +15,7 @@ const providerOptions = {
 
 const initialWeb3Modal = {
   network: 'mainnet',
-  cacheProvider: false,
+  cacheProvider: true,
   providerOptions,
 }
 
@@ -51,10 +51,14 @@ export function Web3ContextProvider(props: Props) {
     disconnect,
   }
   const [context, setContext] = useState(initialState)
+  const [web3Modal, setWeb3Modal] = useState(null)
 
   useEffect(() => {
-    const web3Modal = new Web3Modal(initialWeb3Modal)
-    if (web3Modal.cachedProvider) {
+    setWeb3Modal(new Web3Modal(initialWeb3Modal))
+  }, [])
+
+  useEffect(() => {
+    if (web3Modal && web3Modal.cachedProvider) {
       initialConnect()
     } else {
       setContext({ ...context, loading: false })
@@ -63,7 +67,7 @@ export function Web3ContextProvider(props: Props) {
     async function initialConnect() {
       await connect()
     }
-  }, [])
+  }, [web3Modal])
 
   async function connect() {
     const web3Modal = new Web3Modal(initialWeb3Modal)
@@ -73,8 +77,8 @@ export function Web3ContextProvider(props: Props) {
     const signer = provider.getSigner()
     const address = await signer.getAddress()
 
-    provider.on('accountsChanged', onAccountsChanged)
-    provider.on('networkChanged', onNetworkChanged)
+    web3.on('accountsChanged', (accounts) => onAccountsChanged(accounts))
+    web3.on('chainChanged', (chainId) => onNetworkChanged(chainId))
 
     setContext({
       ...context,
@@ -98,10 +102,12 @@ export function Web3ContextProvider(props: Props) {
   }
 
   async function onAccountsChanged(accounts: string[]) {
+    window.location.reload()
     console.log('onAccountsChanged', accounts)
   }
 
   async function onNetworkChanged(networkId: number) {
+    window.location.reload()
     console.log('onNetworkChanged', networkId)
   }
 

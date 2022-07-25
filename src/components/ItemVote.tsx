@@ -6,6 +6,8 @@ import { useVote } from 'src/hooks/useVote'
 import { useWeb3 } from 'src/hooks/useWeb3'
 import { Message, Vote } from 'src/types'
 import { QuadraticVote } from './QuadraticVote'
+import { StandardVote } from './StandardVote'
+import { VOTE_VERSION } from '../utils/constants'
 
 interface Props {
   number: number
@@ -17,11 +19,8 @@ export function ItemVote(props: Props) {
   const voteContext = useVote()
 
   const [submittingVote, setSubmittingVote] = useState(false)
-  const userVotes = voteContext.userVotes
-  const itemVotes = userVotes.filter((i) => i.number === props.number)
-  const itemCost = itemVotes.map((i) => i.amount).reduce((a, b) => a + b, 0)
+  const proposalVotesByUser = voteContext.proposalVotesByUser
   const votingPower = voteContext.votingPower
-  const usedVotingPower = voteContext.usedVotingPower
 
   async function submitVote(value: number) {
     setSubmittingVote(true)
@@ -29,7 +28,7 @@ export function ItemVote(props: Props) {
       backlog: backlog.id,
       number: props.number,
       amount: value,
-      version: 1,
+      version: VOTE_VERSION,
       timestamp: new Date().getTime(),
     }
 
@@ -40,6 +39,7 @@ export function ItemVote(props: Props) {
     catch (ex) {
       console.log('Signing message failed or denied.', ex)
       setSubmittingVote(false)
+      return false
     }
 
     if (signature) {
@@ -53,7 +53,9 @@ export function ItemVote(props: Props) {
       console.log('Creating vote..', vote)
       const result = await voteContext.vote(vote)
       setSubmittingVote(false)
+      return true
     }
+    return false
   }
 
   async function signMessage(message: Message) {
@@ -88,12 +90,23 @@ export function ItemVote(props: Props) {
           </p>
         )}
 
-        <QuadraticVote
-          current={itemCost}
-          max={votingPower - usedVotingPower}
-          onSubmit={submitVote}
-          loading={submittingVote}
-        />
+        {backlog.settings.method === 'QUADRATIC' ? (
+          <QuadraticVote
+            number={props.number}
+            votingPower={votingPower}
+            proposalVotes={proposalVotesByUser}
+            onSubmit={submitVote}
+            loading={submittingVote}
+          />
+        ) : (
+          <StandardVote
+            number={props.number}
+            votingPower={votingPower}
+            proposalVotes={proposalVotesByUser}
+            onSubmit={submitVote}
+            loading={submittingVote}
+          />
+        )}
       </div>
     </div>
   )

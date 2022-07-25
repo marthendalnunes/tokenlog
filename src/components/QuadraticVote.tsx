@@ -2,21 +2,32 @@ import { Button, ButtonPrimary, TextInput } from '@primer/components'
 import React, { useState } from 'react'
 
 interface Props {
-  current: number
-  max: number
+  number: number
+  votingPower: number
+  proposalVotes: { [key: number]: number }
   loading?: boolean
-  onSubmit: (value: number) => void
+  onSubmit: (value: number) => Promise<boolean>
 }
 
 export function QuadraticVote(props: Props) {
   const step = 1
+  const itemCost = props.proposalVotes.hasOwnProperty(props.number)
+    ? props.proposalVotes[props.number]
+    : 0
+  const usedVotingPower = Object.values(props.proposalVotes).reduce(
+    (vote1: number, vote2: number) => vote1 + getQuadraticCost(vote2),
+    0
+  )
+  const maxVotes = Math.floor(props.votingPower - usedVotingPower)
   const [voteAmount, setVoteAmount] = useState(step)
   const [quadraticCost, setQuadraticCost] = useState(
-    getQuadraticCost(props.current + step)
+    getQuadraticCost(itemCost + step)
   )
 
-  function onSubmit() {
-    props.onSubmit(voteAmount)
+  async function onSubmit() {
+    if (await props.onSubmit(voteAmount)) {
+      setQuadraticCost(getQuadraticCost(itemCost + 2 * voteAmount))
+    }
   }
 
   function onChange(type: 'MIN' | 'DOWN' | 'UP' | 'MAX') {
@@ -25,22 +36,22 @@ export function QuadraticVote(props: Props) {
 
     if (type === 'MIN') {
       amount = step
-      qc = getQuadraticCost(props.current + step)
+      qc = getQuadraticCost(itemCost + step)
     }
     if (type === 'DOWN') {
       amount = voteAmount - step
-      qc = getQuadraticCost(amount + props.current)
+      qc = getQuadraticCost(amount + itemCost)
     }
     if (type === 'UP') {
       amount = voteAmount + step
-      qc = getQuadraticCost(amount + props.current)
+      qc = getQuadraticCost(amount + itemCost)
     }
     if (type === 'MAX') {
       amount = voteAmount
-      qc = getQuadraticCost(amount + props.current)
+      qc = getQuadraticCost(amount + itemCost)
 
-      while (getQuadraticCost(amount + props.current) <= props.max) {
-        qc = getQuadraticCost(amount + props.current)
+      while (getQuadraticCost(amount + itemCost) <= maxVotes) {
+        qc = getQuadraticCost(amount + itemCost)
         amount = amount + step
       }
 
@@ -51,30 +62,31 @@ export function QuadraticVote(props: Props) {
     setQuadraticCost(qc)
   }
 
-  function getQuadraticCost(value: number): number {
-    return Number(Math.pow(value, 2).toFixed(2))
-  }
-
   function disableLower() {
     return voteAmount <= step
   }
 
   function disableHigher() {
-    return props.max <= getQuadraticCost(voteAmount + props.current + 1)
+    return maxVotes <= getQuadraticCost(voteAmount + itemCost + 1)
   }
 
   function disableSubmit() {
-    return quadraticCost > props.max || props.loading
+    return quadraticCost > maxVotes || props.loading
   }
+
+  function getQuadraticCost(value: number): number {
+    return Number(Math.pow(value, 2).toFixed(2))
+  }
+
 
   return (
     <div>
-      <p>You can spend a maximum of {props.max} voting power ('VP').</p>
+      <p>You can spend a maximum of {maxVotes} voting power ('VP').</p>
       <p>
-        You already have {props.current} votes (
-        {getQuadraticCost(props.current)} VP) on this item.
+        You already have {itemCost} votes ({getQuadraticCost(itemCost)} VP) on
+        this item.
       </p>
-      {quadraticCost > props.max && (
+      {quadraticCost > maxVotes && (
         <p className="color-text-warning">
           <span
             className="tooltipped tooltipped-n"
@@ -138,10 +150,9 @@ export function QuadraticVote(props: Props) {
           Submit
         </ButtonPrimary>
         <small className="ml-2">
-          * This vote will cost you{' '}
-          {quadraticCost - getQuadraticCost(props.current)} VP. Which will bring
-          you to a total of {voteAmount + props.current} votes for{' '}
-          {getQuadraticCost(voteAmount + props.current)} VP
+          * This vote will cost you {quadraticCost - getQuadraticCost(itemCost)}{' '}
+          VP. Which will bring you to a total of {voteAmount + itemCost} votes
+          for {getQuadraticCost(voteAmount + itemCost)} VP
         </small>
       </p>
     </div>
