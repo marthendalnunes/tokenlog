@@ -2,13 +2,16 @@ import { ThemeProvider } from '@primer/components'
 import Header from '@primer/components/lib/Header'
 import StyledOcticon from '@primer/components/lib/StyledOcticon'
 import { HomeIcon } from '@primer/octicons-react'
+import { Backlog } from 'src/types'
 import React, { ReactNode } from 'react'
 import { Connect } from '../Connect'
+import { ConnectedNetwork } from '../ConnectedNetwork'
 import { Link } from '../elements/Link'
 import css from './default.module.scss'
 
 type Props = {
   children: ReactNode
+  backlog: Backlog
 }
 
 export function Default(props: Props) {
@@ -22,6 +25,9 @@ export function Default(props: Props) {
                 <StyledOcticon icon={HomeIcon} size={16} mr={2} />
                 <span>Tokenlog</span>
               </Link>
+            </Header.Item>
+            <Header.Item mr={4}>
+              <ConnectedNetwork backlog={props.backlog} />
             </Header.Item>
             <Header.Item mr={0}>
               <Connect />

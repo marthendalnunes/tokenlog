@@ -81,7 +81,7 @@ export function QuadraticVote(props: Props) {
 
   return (
     <div>
-      <p>You can spend a maximum of {maxVotes} voting power ('VP').</p>
+      <p>You can spend a maximum of {Math.max(maxVotes, 0)} voting power ('VP').</p>
       <p>
         You already have {itemCost} votes ({getQuadraticCost(itemCost)} VP) on
         this item.

@@ -44,7 +44,7 @@ export function StandardVote(props: Props) {
 
   return (
     <div>
-      <p>You can spend a maximum of {maxVotes} votes.</p>
+      <p>You can spend a maximum of {Math.max(maxVotes, 0)} votes.</p>
       <p>You already have {itemCost} votes on this item.</p>
       {cost > maxVotes && (
         <p className="color-text-warning">

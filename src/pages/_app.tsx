@@ -7,7 +7,7 @@ import 'src/assets/styles/globals.scss'
 export default function App({ Component, pageProps }) {
   return (
     <Web3ContextProvider>
-      <Default>
+      <Default {...pageProps}>
         <SEO />
         <Component {...pageProps} />
       </Default>

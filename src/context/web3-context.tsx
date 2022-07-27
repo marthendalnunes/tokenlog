@@ -3,6 +3,7 @@ import WalletConnectProvider from '@walletconnect/web3-provider'
 import Web3Modal from 'web3modal'
 import { Network, Web3Provider } from '@ethersproject/providers'
 import { APP_CONFIG } from 'src/utils/config'
+import { SUPPORTED_CHAINS } from 'src/utils/constants'
 
 const providerOptions = {
   walletconnect: {
@@ -30,6 +31,7 @@ interface Web3ContextType {
   address: string | undefined
   connect: () => void
   disconnect: () => void
+  switchNetwork: (chainId: number, chainIdHex: string) => void
 }
 
 export const Web3Context = createContext<Web3ContextType>({
@@ -39,6 +41,7 @@ export const Web3Context = createContext<Web3ContextType>({
   address: undefined,
   connect: () => undefined,
   disconnect: () => undefined,
+  switchNetwork: (chainId: number, chainIdHex: string) => undefined,
 })
 
 export function Web3ContextProvider(props: Props) {
@@ -49,6 +52,7 @@ export function Web3ContextProvider(props: Props) {
     address: undefined,
     connect,
     disconnect,
+    switchNetwork,
   }
   const [context, setContext] = useState(initialState)
   const [web3Modal, setWeb3Modal] = useState(null)
@@ -109,6 +113,27 @@ export function Web3ContextProvider(props: Props) {
   async function onNetworkChanged(networkId: number) {
     window.location.reload()
     console.log('onNetworkChanged', networkId)
+  }
+
+  async function switchNetwork(chainId: number, chainIdHex: string) {
+    const web3Modal = new Web3Modal(initialWeb3Modal)
+    const web3 = await web3Modal.connect()
+    const provider = new Web3Provider(web3)
+    try {
+      await provider.provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: chainIdHex }],
+      })
+    } catch (switchError) {
+      try {
+        await provider.provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [SUPPORTED_CHAINS[chainId]],
+        })
+      } catch (addError) {
+        console.error(addError)
+      }
+    }
   }
 
   return (
