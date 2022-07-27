@@ -20,7 +20,7 @@ export function ItemVote(props: Props) {
 
   const [submittingVote, setSubmittingVote] = useState(false)
   const proposalVotesByUser = voteContext.proposalVotesByUser
-  const votingPower = voteContext.votingPower
+  const votingPower = (voteContext.votingPower || 0)
 
   async function submitVote(value: number) {
     setSubmittingVote(true)
