@@ -102,7 +102,7 @@ export function VoteContextProvider(props: Props) {
         '',
         backlog.settings.strategy,
         web3Context.network.chainId.toString(),
-        web3Context.provider,
+        '',
         [web3Context.address]
       )
       return scores[0][web3Context.address]
